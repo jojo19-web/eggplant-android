@@ -1,4 +1,4 @@
-package com.example.eggplantdetector.database
+package com.example.egglance.database
 
 import android.content.Context
 import androidx.room.Database

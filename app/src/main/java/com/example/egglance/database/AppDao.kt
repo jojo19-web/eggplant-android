@@ -1,4 +1,4 @@
-package com.example.eggplantdetector.database
+package com.example.egglance.database
 
 import androidx.room.*
 
@@ -34,8 +34,4 @@ interface AppDao {
     // Treatment Operations
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertTreatment(treatment: Treatment)
-
-    // Junction Table for Disease Treatment entity
-    @Insert(onConflict = OnConflictStrategy.IGNORE)
-    suspend fun insertDiseaseTreatment(crossRef: DiseaseTreatment)
 }

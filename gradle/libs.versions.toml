@@ -1,8 +1,9 @@
 [versions]
 agp = "8.6.1"
-kotlin = "1.9.0"
-ksp = "1.9.24-1.0.20"
+kotlin = "1.9.20"
+ksp = "1.9.20-1.0.14"
 room = "2.6.1"
+lifecycleRuntimeKtx = "2.6.2"
 coreKtx = "1.10.1"
 junit = "4.13.2"
 junitVersion = "1.1.5"
@@ -30,6 +31,7 @@ tensorflow-lite-gpu = { group = "org.tensorflow", name = "tensorflow-lite-gpu", 
 room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "room" }
 room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room" }
 room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room" }
+androidx-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "lifecycleRuntimeKtx" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

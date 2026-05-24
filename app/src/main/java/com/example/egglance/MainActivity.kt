@@ -29,6 +29,14 @@ import org.tensorflow.lite.support.tensorbuffer.TensorBuffer
 import java.io.IOException
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
+import com.example.egglance.database.AppDatabase
+import com.example.egglance.database.AppDao
+
+//test database
+import android.util.Log
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
 
@@ -48,6 +56,10 @@ class MainActivity : AppCompatActivity() {
     private var isClassifyingLiveFrame = false
     private val liveDetectionIntervalMs = 1000L
 
+    //Database variables
+    private lateinit var database: AppDatabase
+    private lateinit var appDao: AppDao
+
     private val imageSize = 224
     private val classes = arrayOf(
         "Healthy Leaf",
@@ -58,9 +70,49 @@ class MainActivity : AppCompatActivity() {
         "Wilt Disease"
     )
 
+    //Test code for database sync
+    /*
+    private fun testDatabase() {
+        lifecycleScope.launch(Dispatchers.IO) {
+            // 1. Insert a test disease
+            val testDisease = Disease(
+                diseaseName = "Leaf Spot Disease",
+                diseaseDescription = "Causes brown circular spots on eggplant leaves."
+            )
+            appDao.insertDiseases(listOf(testDisease))
+
+            // 2. Insert a test session
+            val testSession = ScanSession()
+            appDao.insertSession(testSession)
+
+            // 3. Insert a test scan linked to that session
+            val testScan = Scan(
+                parentSessionID = testSession.sessionID,
+                imagePath = "/test/path/leaf_001.jpg",
+                confidenceScore = 0.91f
+            )
+            appDao.insertScan(testScan)
+
+            // 4. Read everything back and log it
+            val allDiseases = appDao.getAllDiseases()
+            val allSessions = appDao.getAllSessions()
+            val scansForSession = appDao.getScansForSession(testSession.sessionID)
+
+            Log.d("DB_TEST", "=== DATABASE TEST ===")
+            Log.d("DB_TEST", "Diseases: $allDiseases")
+            Log.d("DB_TEST", "Sessions: $allSessions")
+            Log.d("DB_TEST", "Scans for session: $scansForSession")
+        }
+    }
+    */
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        //database setup
+        database = AppDatabase.getDatabase(this)
+        appDao = database.appDao()
 
         result = findViewById(R.id.result)
         confidence = findViewById(R.id.confidence)
@@ -107,6 +159,9 @@ class MainActivity : AppCompatActivity() {
                 requestPermissions(arrayOf(Manifest.permission.CAMERA), 100)
             }
         }
+
+        // at the very end of onCreate - remove if no longer needed
+        //testDatabase()
     }
 
     override fun onPause() {
