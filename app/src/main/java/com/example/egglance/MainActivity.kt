@@ -35,8 +35,14 @@ import com.example.egglance.database.AppDao
 //test database
 import android.util.Log
 import androidx.lifecycle.lifecycleScope
+import com.example.egglance.database.Scan
+import com.example.egglance.database.ScanSession
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+
+//For image saving
+import java.io.File
+import java.io.FileOutputStream
 
 class MainActivity : AppCompatActivity() {
 
@@ -60,6 +66,16 @@ class MainActivity : AppCompatActivity() {
     private lateinit var database: AppDatabase
     private lateinit var appDao: AppDao
 
+    //For saving Scans in the scan database
+    private var currentSession: ScanSession? = null
+    private val confidenceThreshold = 0.85f //Confidence threshold
+                                            // accepted by the system
+                                            // to save in the database
+
+    // Debounce for live capture
+    private var lastSavedTimestamp = 0L
+    private val debounceInterval = 3000L // saves the scan every 3 second interval
+
     private val imageSize = 224
     private val classes = arrayOf(
         "Healthy Leaf",
@@ -69,42 +85,6 @@ class MainActivity : AppCompatActivity() {
         "Small Leaf Disease",
         "Wilt Disease"
     )
-
-    //Test code for database sync
-    /*
-    private fun testDatabase() {
-        lifecycleScope.launch(Dispatchers.IO) {
-            // 1. Insert a test disease
-            val testDisease = Disease(
-                diseaseName = "Leaf Spot Disease",
-                diseaseDescription = "Causes brown circular spots on eggplant leaves."
-            )
-            appDao.insertDiseases(listOf(testDisease))
-
-            // 2. Insert a test session
-            val testSession = ScanSession()
-            appDao.insertSession(testSession)
-
-            // 3. Insert a test scan linked to that session
-            val testScan = Scan(
-                parentSessionID = testSession.sessionID,
-                imagePath = "/test/path/leaf_001.jpg",
-                confidenceScore = 0.91f
-            )
-            appDao.insertScan(testScan)
-
-            // 4. Read everything back and log it
-            val allDiseases = appDao.getAllDiseases()
-            val allSessions = appDao.getAllSessions()
-            val scansForSession = appDao.getScansForSession(testSession.sessionID)
-
-            Log.d("DB_TEST", "=== DATABASE TEST ===")
-            Log.d("DB_TEST", "Diseases: $allDiseases")
-            Log.d("DB_TEST", "Sessions: $allSessions")
-            Log.d("DB_TEST", "Scans for session: $scansForSession")
-        }
-    }
-    */
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -142,6 +122,7 @@ class MainActivity : AppCompatActivity() {
             if (checkSelfPermission(Manifest.permission.CAMERA)
                 == PackageManager.PERMISSION_GRANTED
             ) {
+                startNewSession()
                 val cameraIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
                 startActivityForResult(cameraIntent, 1)
             } else {
@@ -151,22 +132,26 @@ class MainActivity : AppCompatActivity() {
 
         liveButton.setOnClickListener {
             if (liveDetectionEnabled) {
+                endCurrentSession()
                 stopLiveDetection()
             } else if (checkSelfPermission(Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
+                startNewSession()
                 startLiveDetection()
             } else {
                 waitingForLivePermission = true
                 requestPermissions(arrayOf(Manifest.permission.CAMERA), 100)
             }
         }
-
-        // at the very end of onCreate - remove if no longer needed
-        //testDatabase()
     }
 
     override fun onPause() {
         stopLiveDetection()
         super.onPause()
+    }
+
+    override fun onStop() {
+        super.onStop()
+        endCurrentSession()
     }
 
     override fun onRequestPermissionsResult(
@@ -197,6 +182,11 @@ class MainActivity : AppCompatActivity() {
 
             imageView.setImageBitmap(scaledImage)
             classifyImage(scaledImage)
+
+            endCurrentSession()
+        }
+        else {
+            endCurrentSession()
         }
     }
 
@@ -358,8 +348,79 @@ class MainActivity : AppCompatActivity() {
             }.joinToString("\n")
 
             model.close()
+
+            //For image and AR database data saving logic
+            val topConfidence = confidences[maxPos]
+
+            if (topConfidence >= confidenceThreshold) {
+                val now = System.currentTimeMillis()
+
+                if (liveDetectionEnabled) {
+                    // Live capture — debounced
+                    if (now - lastSavedTimestamp >= debounceInterval) {
+                        lastSavedTimestamp = now
+                        saveScanToDatabase(image, topConfidence)
+                    }
+                } else {
+                    // Camera capture — save immediately every time
+                    saveScanToDatabase(image, topConfidence)
+                }
+            }
         } catch (e: IOException) {
             Toast.makeText(this, "Could not load TFLite model", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun saveImage(bitmap: Bitmap, filename: String): String {
+        val file = File(filesDir, filename)
+        FileOutputStream(file).use { out ->
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 90, out)
+        }
+        return file.absolutePath
+    }
+
+    private fun saveScanToDatabase(bitmap: Bitmap, confidence: Float) {
+        val session = currentSession ?: return
+
+        val filename = "scan_${System.currentTimeMillis()}.jpg"
+        val imagePath = saveImage(bitmap, filename)
+
+        val scan = Scan(
+            parentSessionID = session.sessionID,
+            imagePath = imagePath,
+            confidenceScore = confidence
+        )
+
+        lifecycleScope.launch(Dispatchers.IO) {
+            appDao.insertScan(scan)
+
+            val updatedSession = session.copy(
+                totalLeaves = session.totalLeaves + 1
+            )
+            currentSession = updatedSession
+            appDao.updateSession(updatedSession)
+        }
+    }
+
+    private fun startNewSession() {
+        val session = ScanSession()
+        currentSession = session
+        lastSavedTimestamp = 0L // reset debounce on new session
+
+        lifecycleScope.launch(Dispatchers.IO) {
+            appDao.insertSession(session)
+        }
+    }
+
+    private fun endCurrentSession() {
+        val session = currentSession ?: return
+        val closedSession = session.copy(
+            endingTimestamp = System.currentTimeMillis()
+        )
+        currentSession = null
+
+        lifecycleScope.launch(Dispatchers.IO) {
+            appDao.updateSession(closedSession)
         }
     }
 }
