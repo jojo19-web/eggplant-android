@@ -5,15 +5,21 @@ import android.annotation.SuppressLint
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
+<<<<<<< HEAD
 import android.graphics.ImageDecoder
+=======
+>>>>>>> a231adbbf21e76f6cb956c31def512f511d8f675
 import android.graphics.SurfaceTexture
 import android.hardware.camera2.CameraCaptureSession
 import android.hardware.camera2.CameraCharacteristics
 import android.hardware.camera2.CameraDevice
 import android.hardware.camera2.CameraManager
 import android.hardware.camera2.CaptureRequest
+<<<<<<< HEAD
 import android.net.Uri
 import android.os.Build
+=======
+>>>>>>> a231adbbf21e76f6cb956c31def512f511d8f675
 import android.os.Bundle
 import android.os.Handler
 import android.os.HandlerThread
@@ -25,7 +31,10 @@ import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
+<<<<<<< HEAD
 import androidx.activity.result.contract.ActivityResultContracts
+=======
+>>>>>>> a231adbbf21e76f6cb956c31def512f511d8f675
 import androidx.appcompat.app.AppCompatActivity
 import com.example.egglance.ml.CustomMobilenetv2Model
 import org.tensorflow.lite.DataType
@@ -33,6 +42,7 @@ import org.tensorflow.lite.support.tensorbuffer.TensorBuffer
 import java.io.IOException
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
+<<<<<<< HEAD
 import com.example.egglance.database.AppDatabase
 import com.example.egglance.database.AppDao
 
@@ -41,15 +51,22 @@ import android.util.Log
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+=======
+>>>>>>> a231adbbf21e76f6cb956c31def512f511d8f675
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var result: TextView
     private lateinit var confidence: TextView
+<<<<<<< HEAD
     private lateinit var treatment: TextView
     private lateinit var imageView: ImageView
     private lateinit var picture: Button
     private lateinit var uploadButton: Button
+=======
+    private lateinit var imageView: ImageView
+    private lateinit var picture: Button
+>>>>>>> a231adbbf21e76f6cb956c31def512f511d8f675
     private lateinit var liveButton: Button
     private lateinit var livePreview: TextureView
 
@@ -62,10 +79,13 @@ class MainActivity : AppCompatActivity() {
     private var isClassifyingLiveFrame = false
     private val liveDetectionIntervalMs = 1000L
 
+<<<<<<< HEAD
     //Database variables
     private lateinit var database: AppDatabase
     private lateinit var appDao: AppDao
 
+=======
+>>>>>>> a231adbbf21e76f6cb956c31def512f511d8f675
     private val imageSize = 224
     private val classes = arrayOf(
         "Healthy Leaf",
@@ -76,6 +96,7 @@ class MainActivity : AppCompatActivity() {
         "Wilt Disease"
     )
 
+<<<<<<< HEAD
     private val treatments = mapOf(
         "Healthy Leaf" to "No disease treatment is needed. Keep monitoring the plant, water at the base, keep the area clean, and maintain good airflow around the leaves.",
         "Insect Pest Disease" to "Remove heavily damaged leaves, check the underside of leaves for pests, and use neem oil or insecticidal soap. Repeat treatment every 5 to 7 days if pests remain.",
@@ -126,10 +147,13 @@ class MainActivity : AppCompatActivity() {
     }
     */
 
+=======
+>>>>>>> a231adbbf21e76f6cb956c31def512f511d8f675
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+<<<<<<< HEAD
         //database setup
         database = AppDatabase.getDatabase(this)
         appDao = database.appDao()
@@ -140,6 +164,12 @@ class MainActivity : AppCompatActivity() {
         imageView = findViewById(R.id.imageView)
         picture = findViewById(R.id.button)
         uploadButton = findViewById(R.id.uploadButton)
+=======
+        result = findViewById(R.id.result)
+        confidence = findViewById(R.id.confidence)
+        imageView = findViewById(R.id.imageView)
+        picture = findViewById(R.id.button)
+>>>>>>> a231adbbf21e76f6cb956c31def512f511d8f675
         liveButton = findViewById(R.id.liveButton)
         livePreview = findViewById(R.id.livePreview)
 
@@ -171,11 +201,14 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
+<<<<<<< HEAD
         uploadButton.setOnClickListener {
             stopLiveDetection()
             pickImageLauncher.launch("image/*")
         }
 
+=======
+>>>>>>> a231adbbf21e76f6cb956c31def512f511d8f675
         liveButton.setOnClickListener {
             if (liveDetectionEnabled) {
                 stopLiveDetection()
@@ -186,9 +219,12 @@ class MainActivity : AppCompatActivity() {
                 requestPermissions(arrayOf(Manifest.permission.CAMERA), 100)
             }
         }
+<<<<<<< HEAD
 
         // at the very end of onCreate - remove if no longer needed
         //testDatabase()
+=======
+>>>>>>> a231adbbf21e76f6cb956c31def512f511d8f675
     }
 
     override fun onPause() {
@@ -227,6 +263,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+<<<<<<< HEAD
     private fun handleSelectedImage(uri: Uri) {
         try {
             val image = loadBitmapFromUri(uri)
@@ -254,6 +291,8 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+=======
+>>>>>>> a231adbbf21e76f6cb956c31def512f511d8f675
     private fun startLiveDetection() {
         liveDetectionEnabled = true
         imageView.visibility = View.GONE
@@ -261,7 +300,10 @@ class MainActivity : AppCompatActivity() {
         liveButton.text = "Stop Live Detection"
         result.text = "Starting live detection..."
         confidence.text = ""
+<<<<<<< HEAD
         treatment.text = "Point the camera at an eggplant leaf to see treatment guidance."
+=======
+>>>>>>> a231adbbf21e76f6cb956c31def512f511d8f675
         startCameraThread()
 
         if (livePreview.isAvailable) {
@@ -407,6 +449,7 @@ class MainActivity : AppCompatActivity() {
             val confidences = outputs.outputFeature0AsTensorBuffer.floatArray
             val maxPos = confidences.indices.maxByOrNull { confidences[it] } ?: 0
 
+<<<<<<< HEAD
             val predictedClass = classes.getOrElse(maxPos) { "Class ${maxPos + 1}" }
 
             result.text = predictedClass
@@ -415,6 +458,12 @@ class MainActivity : AppCompatActivity() {
             }.joinToString("\n")
             treatment.text = treatments[predictedClass]
                 ?: "No treatment guidance is available for this result yet."
+=======
+            result.text = classes.getOrElse(maxPos) { "Class ${maxPos + 1}" }
+            confidence.text = confidences.mapIndexed { index, score ->
+                "${classes.getOrElse(index) { "Class ${index + 1}" }}: ${"%.1f".format(score * 100)}%"
+            }.joinToString("\n")
+>>>>>>> a231adbbf21e76f6cb956c31def512f511d8f675
 
             model.close()
         } catch (e: IOException) {
