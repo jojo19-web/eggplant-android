@@ -32,7 +32,7 @@ import java.nio.ByteOrder
 import com.example.egglance.database.AppDatabase
 import com.example.egglance.database.AppDao
 
-//test database
+//database
 import android.util.Log
 import androidx.lifecycle.lifecycleScope
 import com.example.egglance.database.Scan
@@ -183,6 +183,7 @@ class MainActivity : AppCompatActivity() {
             imageView.setImageBitmap(scaledImage)
             classifyImage(scaledImage)
 
+            //Added the endCurrentSession functions for the database
             endCurrentSession()
         }
         else {
@@ -402,6 +403,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    //ScanSession entity logic for database
     private fun startNewSession() {
         val session = ScanSession()
         currentSession = session
