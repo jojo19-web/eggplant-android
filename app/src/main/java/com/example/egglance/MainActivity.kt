@@ -363,7 +363,7 @@ class MainActivity : AppCompatActivity() {
                         saveScanToDatabase(image, topConfidence)
                     }
                 } else {
-                    // Camera capture — save immediately every time
+                    // Camera capture
                     saveScanToDatabase(image, topConfidence)
                 }
             }
