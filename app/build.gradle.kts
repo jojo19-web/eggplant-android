@@ -1,10 +1,7 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
-<<<<<<< HEAD
     alias(libs.plugins.ksp)
-=======
->>>>>>> a231adbbf21e76f6cb956c31def512f511d8f675
 }
 
 android {
@@ -55,12 +52,10 @@ dependencies {
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
-<<<<<<< HEAD
     // For room database
     implementation(libs.room.runtime)
     implementation(libs.room.ktx)
     ksp(libs.room.compiler)
     implementation(libs.androidx.lifecycle.runtime.ktx)
-=======
->>>>>>> a231adbbf21e76f6cb956c31def512f511d8f675
+
 }
