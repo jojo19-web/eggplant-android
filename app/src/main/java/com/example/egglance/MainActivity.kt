@@ -74,7 +74,7 @@ class MainActivity : AppCompatActivity() {
 
     // Debounce for live capture
     private var lastSavedTimestamp = 0L
-    private val debounceInterval = 3000L // saves the scan every 3 second interval
+    private val debounceInterval = 5000L // saves the scan every 5 second interval
 
     private val imageSize = 224
     private val classes = arrayOf(
@@ -405,6 +405,8 @@ class MainActivity : AppCompatActivity() {
 
     //ScanSession entity logic for database
     private fun startNewSession() {
+        endCurrentSession()
+
         val session = ScanSession()
         currentSession = session
         lastSavedTimestamp = 0L // reset debounce on new session
